@@ -11,9 +11,9 @@ class MessageBroker(ABC):
         pass
 
     @abstractmethod
-    def publish(self, message, topic):
+    def subscribe(self, topic, callback):
         pass
 
     @abstractmethod
-    def subscribe(self, topic, callback):
+    def publish(self, message, topic):
         pass
