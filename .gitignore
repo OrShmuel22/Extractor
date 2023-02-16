@@ -4,3 +4,5 @@
 *.pyc
 *.pyo
 /CompressedFiles
+send_message.py
+/path_to_uncompressed_file

@@ -1,5 +1,5 @@
 import logging
-from InterfaceABS.MessageBrokerABC import MessageBroker
+from InterfaceABS.message_broker_abs import MessageBroker
 
 import pika
 
@@ -29,7 +29,7 @@ class RabbitMQMessageBroker(MessageBroker):
             self.channel.queue_bind(exchange=self.routing_key, queue=self.routing_key, routing_key=self.routing_key)
 
         except Exception as e:
-            self.logger.debug(f"Error connecting to RabbitMQ: {e}")
+            self.logger.warning(f"Error connecting to RabbitMQ: {e}")
             raise
 
     def disconnect(self):
@@ -37,7 +37,7 @@ class RabbitMQMessageBroker(MessageBroker):
             if self.connection:
                 self.connection.close()
         except Exception as e:
-            self.logger.debug(f"Error disconnecting from RabbitMQ: {e}")
+            self.logger.warning(f"Error disconnecting from RabbitMQ: {e}")
             raise
 
     def subscribe(self, topic, callback):
@@ -45,23 +45,21 @@ class RabbitMQMessageBroker(MessageBroker):
             self.channel.basic_consume(queue=topic, on_message_callback=lambda ch, method, properties, body: self._on_message(ch, method, properties, body, callback), auto_ack=False)
             self.channel.start_consuming()
         except Exception as e:
-            self.logger.debug(f"Error subscribing to RabbitMQ topic {topic}: {e}")
+            self.logger.warning(f"Error subscribing to RabbitMQ topic {topic}: {e}")
             raise
 
     def _on_message(self, channel, method, properties, body, callback):
         try:
-            # Call the user-provided callback with the message body
             callback(body)
-            # Acknowledge the message if it was processed successfully
             channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
             # Reject the message (without requeueing it) if it was not processed successfully
             channel.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
-            self.logger.debug(f"Error processing message from RabbitMQ: {e}")
+            self.logger.warning(f"Error processing message from RabbitMQ: {e}")
 
     def publish(self, message, topic):
         try:
             self.channel.basic_publish(exchange=self.routing_key, routing_key=topic, body=message)
         except Exception as e:
-            self.logger.debug(f"Error publishing message to RabbitMQ with routing key {topic}: {e}")
+            self.logger.warning(f"Error publishing message to RabbitMQ with routing key {topic}: {e}")
             raise
