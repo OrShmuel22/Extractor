@@ -42,14 +42,14 @@ class ExtractorHandler(Microservice):
             base_name, extension = os.path.splitext(message)
             try:
                 with extractor_class() as extractor:
-                    extractor.extract_file(message, join(self.path_to_uncompressed_file, base_name + extension[1:]))
+                    extractor.extract_file(message, os.path.join(self.path_to_uncompressed_file, base_name + extension[1:]))
                 logging.info(f"Extracted file: {message}")
             except DamagedArchive as e:
                 logging.warning(f"{e}: {message}")
             except PasswordRequired as e:
                 logging.warning(f"{e}: {message}")
         else:
-            logging.info(f"File type not extractable: {file_type}")
+            logging.info(f"File type not extractable: {file_type}, file_name: {file_name}")
 
     def _is_protected(self, file_path):
         pass
@@ -83,11 +83,7 @@ if __name__ == '__main__':
         "application/x-7z-compressed": SevenZipExtractor,
         "application/x-rar": RarExtractor,
         "application/zstd": ZstdExtractor,
-        "application/x-lz4": LZ4Extractor,
-        "application/x-lzop": LZOExtractor,
-        "application/vnd.ms-cab-compressed": CABExtractor,
-        "application/x-lha": LHAExtractor,
-        "application/x-lzh": LHAExtractor
+        "application/x-lz4": Lz4Extractor,
     }
 
     extractor_handler = ExtractorHandler()
