@@ -1,25 +1,32 @@
 import logging
 import os
-
 import magic
-from os.path import join, splitext
 from InterfaceABS.micro_service_abs import Microservice
 from extractors.file_extractors import TarExtractor, Bzip2Extractor, XzExtractor, GzipExtractor, ZipExtractor, \
-    SevenZipExtractor, RarExtractor
+    SevenZipExtractor, RarExtractor, ZstdExtractor, Lz4Extractor
 from extractors.file_extractors import PasswordRequired, DamagedArchive
 
 
 class ExtractorHandler(Microservice):
+    """
+    Extractor is a Python project that provides an easy way to extract various types of compressed files.
+    It supports extraction of tar, bzip2, xz, gzip, zip, 7z, Zstandard, LZ4   and rar files.
+    The project is designed to work with Phoenix framework but can also be used as a standalone script.
+    """
+
     def __init__(self):
         # Todo: Change extractor dict to get information from mongodb about out different type of extract
         self.extractor_config = {
-            "application/x-tar": "extractors.tar_extractor.TarExtractor",
-            "application/x-bzip2": "extractors.bzip_extractor.Bzip2Extractor",
-            "application/x-xz": "extractors.xz_extractor.XzExtractor",
-            "application/gzip": "extractors.gzip_extractor.GzipExtractor",
-            "application/zip": "extractors.zip_extractor.ZipExtractor",
-            "application/x-7z-compressed": "extractors.7z_extractor.SevenZipExtractor",
-            "application/x-rar": "extractors.rar_extractor.RarExtractor"
+            "application/x-tar": TarExtractor,
+            "application/x-bzip2": Bzip2Extractor,
+            "application/x-xz": XzExtractor,
+            "application/gzip": GzipExtractor,
+            "application/x-gzip": GzipExtractor,
+            "application/zip": ZipExtractor,
+            "application/x-7z-compressed": SevenZipExtractor,
+            "application/x-rar": RarExtractor,
+            "application/zstd": ZstdExtractor,
+            "application/x-lz4": Lz4Extractor
         }
 
         self.path_to_uncompressed_file = "./path_to_uncompressed_file/"
@@ -47,10 +54,6 @@ class ExtractorHandler(Microservice):
     def _is_protected(self, file_path):
         pass
 
-    def _is_extractable(self, file_path):
-        pass
-
-    # TODO: Move this function to "global util" it can be used for different purposes
     def get_file_type(self, file_path):
         # recommend using at least the first 2048 bytes, as less can produce incorrect identification
         try:
@@ -78,7 +81,13 @@ if __name__ == '__main__':
         "application/x-gzip": GzipExtractor,
         "application/zip": ZipExtractor,
         "application/x-7z-compressed": SevenZipExtractor,
-        "application/x-rar": RarExtractor
+        "application/x-rar": RarExtractor,
+        "application/zstd": ZstdExtractor,
+        "application/x-lz4": LZ4Extractor,
+        "application/x-lzop": LZOExtractor,
+        "application/vnd.ms-cab-compressed": CABExtractor,
+        "application/x-lha": LHAExtractor,
+        "application/x-lzh": LHAExtractor
     }
 
     extractor_handler = ExtractorHandler()

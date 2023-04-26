@@ -1,3 +1,5 @@
+
+from InterfaceABS.file_extractor_abs import FileExtractor
 import tarfile
 import bz2
 import lzma
@@ -5,7 +7,8 @@ import gzip
 import zipfile
 import py7zr
 import rarfile
-from InterfaceABS.file_extractor_abs import FileExtractor
+import zstandard as zstd
+import lz4
 
 
 class PasswordRequired(Exception):
@@ -140,3 +143,25 @@ class RarExtractor(FileExtractor):
             return True
         except rarfile.BadRarFile:
             raise DamagedArchive("File is damaged")
+
+
+class ZstdExtractor(FileExtractor):
+    def extract_file(self, compressed_file_path, path_to_uncompressed_file):
+        try:
+            with open(compressed_file_path, 'rb') as compressed_file, open(path_to_uncompressed_file,
+                                                                           'wb') as output_file:
+                dctx = zstd.ZstdDecompressor()
+                dctx.copy_stream(compressed_file, output_file)
+        except zstd.ZstdError as e:
+            raise DamagedArchive("Archive is damaged") from e
+
+
+class Lz4Extractor(FileExtractor):
+    def extract_file(self, compressed_file_path, path_to_uncompressed_file):
+        try:
+            with open(compressed_file_path, 'rb') as compressed_file, open(path_to_uncompressed_file,
+                                                                           'wb') as output_file:
+                output_file.write(lz4.frame.decompress(compressed_file.read()))
+        except lz4.frame.LZ4FrameError as e:
+            raise DamagedArchive("Archive is damaged") from e
+
